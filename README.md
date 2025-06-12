@@ -1,6 +1,6 @@
-# movie-recommender-website
+# Movie Recommender App
 
-A movie recommender website (content based recommender system)
+A movie recommender web app (content based recommender system)
 
 1) Combined movie synopsis, genre, and cast/crew names into one feature called 'tags'
 2) Used TF/IDF vectorizer to vectorize tags (excluding stopwords)
