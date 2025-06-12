@@ -1,0 +1,8 @@
+# .streamlit/config.toml
+
+[theme]
+primaryColor = "#FFFFFF"             # buttons, sliders, etc.
+backgroundColor = "#343A40"          # main page background
+secondaryBackgroundColor = "#6C757D" # sidebar & containers
+textColor = "#FFFFFF"                # default text
+font = "sans serif"                  # or "serif" / "monospace"

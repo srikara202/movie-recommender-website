@@ -2,79 +2,130 @@ import streamlit as st
 import pickle
 import pandas as pd
 import requests
+import os
+import difflib
 
-# download movie_dict.pkl and similarity.pkl and paste them to this directory before running the app
+# ─────────────────────────────────────────────────────────────────────────────
+# CONFIGURATION
+# ─────────────────────────────────────────────────────────────────────────────
+# Hardcode your TMDB API key here (replace with your actual key).
+TMDB_API_KEY = "e06818a170de34c6c96230794fb70781"
 
+# Streamlit page settings
+st.set_page_config(
+    page_title="🎬 Movie Recommender",
+    page_icon="🎥",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-def fetch_poster(movie_id):
-    api_key = "e06818a170de34c6c96230794fb70781"  # ideally store in st.secrets or env var
-    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}&language=en-US"
-    response = requests.get(url)
-    if response.status_code != 200:
-        # handle error, e.g., return a placeholder image URL or None
-        return None
-    data = response.json()
-    poster_path = data.get('poster_path')
-    if not poster_path:
-        return None
-    return "https://image.tmdb.org/t/p/w500/" + poster_path
+# ─────────────────────────────────────────────────────────────────────────────
+# CSS: Light theme background with dark text
+# ─────────────────────────────────────────────────────────────────────────────
 
-movies_list = pickle.load(open('movie_dict.pkl', 'rb'))
-similarity = pickle.load(open('similarity.pkl', 'rb'))
-movies = pd.DataFrame(movies_list)
+# ─────────────────────────────────────────────────────────────────────────────
+# DATA LOADING
+# ─────────────────────────────────────────────────────────────────────────────
+@st.cache_data
+def load_data():
+    try:
+        movies_list = pickle.load(open('movie_dict.pkl', 'rb'))
+        similarity = pickle.load(open('similarity.pkl', 'rb'))
+    except FileNotFoundError as e:
+        st.error(f"Data files not found: {e}")
+        return None, None
+    df = pd.DataFrame(movies_list)
+    return df, similarity
 
+movies, similarity = load_data()
+if movies is None or similarity is None:
+    st.stop()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SIDEBAR CONTROLS
+# ─────────────────────────────────────────────────────────────────────────────
+st.sidebar.header("🔎 Filters & Search")
+search_input = st.sidebar.text_input("Search Movie Title (partial)")
+num_recs = st.sidebar.slider("Number of recommendations", 5, 20, 10)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MAIN CONTENT
+# ─────────────────────────────────────────────────────────────────────────────
 st.title("Movie Recommender System")
 
-selected_movie_name = st.selectbox('select movie', movies['title'].values)
+# Movie selector with optional fuzzy matching
+all_titles = movies['title'].tolist()
+if search_input:
+    matches = difflib.get_close_matches(search_input, all_titles, n=10, cutoff=0.5)
+    if matches:
+        selected_movie = st.selectbox("Select a movie", matches)
+    else:
+        st.warning("No matches found. Showing full list.")
+        selected_movie = st.selectbox("Select a movie", all_titles)
+else:
+    selected_movie = st.selectbox("Select a movie", all_titles)
 
-print(type(selected_movie_name))
+# ─────────────────────────────────────────────────────────────────────────────
+# POSTER FETCHING (CACHED)
+# ─────────────────────────────────────────────────────────────────────────────
+@st.cache_data(ttl=24*3600)
+def fetch_poster(movie_id: int):
+    if not TMDB_API_KEY or not movie_id:
+        return None
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={TMDB_API_KEY}&language=en-US"
+    try:
+        resp = requests.get(url, timeout=5)
+        resp.raise_for_status()
+    except requests.RequestException:
+        return None
+    data = resp.json()
+    path = data.get('poster_path')
+    return f"https://image.tmdb.org/t/p/w500{path}" if path else None
 
+# ─────────────────────────────────────────────────────────────────────────────
+# RECOMMENDATION LOGIC (CACHED)
+# ─────────────────────────────────────────────────────────────────────────────
+@st.cache_data
+def recommend(movie: str, top_n: int = 10):
+    try:
+        idx = movies[movies['title'] == movie].index[0]
+    except IndexError:
+        return [], []
+    distances = similarity[idx]
+    ranked = sorted(enumerate(distances), key=lambda x: x[1], reverse=True)[1:top_n+1]
+    titles, posters = [], []
+    for i, _ in ranked:
+        row = movies.iloc[i]
+        titles.append(row['title'])
+        mid = row.get('movie_id') or row.get('id') or row.get('movieId')
+        posters.append(fetch_poster(mid))
+    return titles, posters
 
-def recommend(movie):
-  movie_index = movies[movies['title'] == movie].index[0]
-  distances = similarity[movie_index]
-  reco_list = sorted(list(enumerate(distances)), reverse=True, key = lambda x:x[1])[1:11]
-  reco_titles = []
-  reco_posters = []
-  for i in reco_list:
-      movie_id = movies.iloc[i[0]].movie_id
-      reco_titles.append(movies.iloc[i[0]].title)
-      # fetch poster from API
-      reco_posters.append(fetch_poster(movie_id))
-  return reco_titles, reco_posters
+# ─────────────────────────────────────────────────────────────────────────────
+# RUN RECOMMENDATION ON BUTTON CLICK
+# ─────────────────────────────────────────────────────────────────────────────
+if st.button("Recommend Movie"):
+    if not selected_movie:
+        st.error("Please choose a movie first.")
+    else:
+        with st.spinner("Fetching recommendations..."):
+            rec_titles, rec_posters = recommend(selected_movie, top_n=num_recs)
+        if not rec_titles:
+            st.warning("No recommendations could be generated.")
+        else:
+            cols = st.columns(5)
+            for idx, (title, poster_url) in enumerate(zip(rec_titles, rec_posters)):
+                col = cols[idx % 5]
+                with col:
+                    st.caption(title)
+                    if poster_url:
+                        st.image(poster_url, use_container_width=True)
+                    else:
+                        st.info("No image available")
+                if (idx + 1) % 5 == 0 and (idx + 1) < len(rec_titles):
+                    cols = st.columns(5)
 
-if st.button('Recommend movie'):
-#    st.write(selected_movie_name)
-    names, posters = recommend(selected_movie_name)
-    col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
-        st.text(names[0])
-        st.image(posters[0])
-    with col2:
-        st.text(names[1])
-        st.image(posters[1])
-    with col3:
-        st.text(names[2])
-        st.image(posters[2])
-    with col4:
-        st.text(names[3])
-        st.image(posters[3])
-    with col5:
-        st.text(names[4])
-        st.image(posters[4])
-    col6, col7, col8, col9, col10 = st.columns(5)
-    with col6:
-        st.text(names[5])
-        st.image(posters[5])
-    with col7:
-        st.text(names[6])
-        st.image(posters[6])
-    with col8:
-        st.text(names[7])
-        st.image(posters[7])
-    with col9:
-        st.text(names[8])
-        st.image(posters[8])
-    with col10:
-        st.text(names[9])
-        st.image(posters[9])
+# ─────────────────────────────────────────────────────────────────────────────
+# DEPENDENCIES
+# ─────────────────────────────────────────────────────────────────────────────
+# streamlit, pandas, requests, difflib
