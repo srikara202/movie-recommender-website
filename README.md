@@ -7,7 +7,6 @@ A movie recommender website (content based recommender system)
 3) Generated a similarity matrix with similarity scores between movies
 4) Created a recommender website using streamlit
 
-How To Run:
+## How To Run:
 
-1) run Movie_Recommender_System.ipynb
-2) type 'streamlit run app.py' on the terminal (make sure terminal is opened in the same directory as the project files)
+type 'streamlit run app.py' on the terminal (make sure terminal is opened in the same directory as the project files)
