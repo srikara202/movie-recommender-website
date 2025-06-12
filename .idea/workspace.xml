@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bb32a25c-f30f-4730-b374-6eafb25f1690" name="Changes" comment="" />
+    <list default="true" id="bb32a25c-f30f-4730-b374-6eafb25f1690" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/movie_dict.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/movie_dict.pkl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/similarity.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/similarity.pkl" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
