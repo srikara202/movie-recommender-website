@@ -10,3 +10,7 @@ A movie recommender web app (content based recommender system)
 ## How To Run:
 
 type 'streamlit run app.py' on the terminal (make sure terminal is opened in the same directory as the project files)
+
+## Heroku Deployment
+
+https://movie-recommender-website-49daa3002113.herokuapp.com/
