@@ -13,4 +13,4 @@ type 'streamlit run app.py' on the terminal (make sure terminal is opened in the
 
 ## Heroku Deployment
 
-https://movie-recommender-website-49daa3002113.herokuapp.com/
+https://movie-recommender-website-49daa3002113.herokuapp.com/ (disabled for now)
