@@ -1,0 +1,21 @@
+name: Example Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  example-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use secret in environment variable
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+        run: |
+          echo "Using the secret in the workflow"
+          echo "API_KEY is set but not displayed for security reasons"
