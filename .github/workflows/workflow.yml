@@ -3,18 +3,22 @@ name: Example Workflow
 on:
   workflow_dispatch:
 
-env:
-  API_KEY: ${{ secrets.TMDB_API_KEY }}
-
 jobs:
   example-job:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Use secret in environment variable
-        run: |
-          pip install requirements
-          streamlit run app.py
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Streamlit
+        env:
+          API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: streamlit run app.py
