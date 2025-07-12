@@ -5,6 +5,9 @@ on:
     branches:
       - master
 
+env:
+  API_KEY: ${{ secrets.TMDB_API_KEY }}
+
 jobs:
   example-job:
     runs-on: ubuntu-latest
@@ -14,8 +17,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Use secret in environment variable
-        env:
-          API_KEY: ${{ secrets.TMDB_API_KEY }}
         run: |
           echo "Using the secret in the workflow"
           echo "API_KEY is set but not displayed for security reasons"
