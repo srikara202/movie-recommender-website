@@ -9,7 +9,7 @@ import difflib
 # CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
 # Hardcode your TMDB API key here (replace with your actual key).
-TMDB_API_KEY = "e06818a170de34c6c96230794fb70781"
+TMDB_API_KEY = os.getenv("API_KEY")
 
 # Streamlit page settings
 st.set_page_config(
