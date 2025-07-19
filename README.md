@@ -11,6 +11,6 @@ A movie recommender web app (content based recommender system)
 
 type 'streamlit run app.py' on the terminal (make sure terminal is opened in the same directory as the project files)
 
-## Heroku Deployment
+## Hosted on Streamlit
 
-https://movie-recommender-website-49daa3002113.herokuapp.com/ (disabled for now)
+https://movie-recommender-website-o4qjv5drz9btrf7uj2fxqf.streamlit.app/ (let me know if it is disabled)
